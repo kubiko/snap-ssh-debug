@@ -1,0 +1,9 @@
+#!/bin/bash
+
+# run server only when enabled in config
+if [ "true" = "$(snapctl get ssh-server.enabled)" ]; then
+  PORT=$(snapctl get  ssh-tunnel.local.port)
+  [ -z "${PORT}" ] && PORT="22"
+  echo "PORT=${PORT}"
+  $SNAP/sbin/dropbear -E -F -R -g -a -p ${PORT} -P $SNAP_COMMON/dbearPID -r ${SNAP_COMMON}/dropbear_rsa_host_key -r ${SNAP_COMMON}/dropbear_dss_host_key -r ${SNAP_COMMON}/dropbear_ecdsa_host_key -v
+fi
