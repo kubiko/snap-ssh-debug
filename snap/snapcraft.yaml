@@ -1,0 +1,79 @@
+name: ondra-snap-ssh-debug
+base: core18
+version: '0.1'
+summary: Example to enable ssh debug
+description: |
+  Example
+  how to enable snap app remote debug
+
+grade: stable
+confinement: strict
+
+environment:
+    PATH:             "$SNAP/usr/sbin:$SNAP/usr/bin:$SNAP/sbin:$SNAP/bin:$PATH"
+    LD_LIBRARY_PATH:  "$SNAP/lib/${SNAPCRAFT_ARCH_TRIPLET}:$SNAP_LIBRARY_PATH:$LD_LIBRARY_PATH:$SNAP/lib:$SNAP/usr/lib:$SNAP/usr/lib/${SNAPCRAFT_ARCH_TRIPLET}"
+
+layout:
+  /etc/dropbear:
+    bind: $SNAP_COMMON/etc/dropbear
+
+apps:
+  ssh-tunnel:
+    command: bin/remote-connect
+    daemon: simple
+    plugs:
+      - network
+      - network-bind
+
+  dropbear:
+    command: bin/ssh-server
+    daemon: simple
+    environment:
+      LD_PRELOAD: $SNAP/usr/lib/stub_calls.so
+    plugs:
+      - log-observe
+      - network
+      - network-bind
+
+parts:
+  glue:
+    source: glue
+    plugin: dump
+
+  openssh-client:
+    plugin: nil
+    stage-packages:
+      - to armhf:
+        - openssh-client:armhf
+      - to arm64:
+        - openssh-client:arm64
+      - to amd64:
+        - openssh-client:amd64
+
+  dropbear:
+    plugin: autotools
+    source: https://github.com/mkj/dropbear.git
+    source-branch: DROPBEAR_2019.78
+    build-packages:
+      - zlib1g-dev
+    override-pull: |
+      snapcraftctl pull
+      git apply ../../../trace.patch
+
+  fix-setgroups-calls:
+    plugin: nil
+    source: fix-setgroups-calls
+    override-build: |
+      mkdir -p ${SNAPCRAFT_PART_INSTALL}/usr/lib
+      if [ -n "$(uname -a | grep x86_64)" ]; then
+        # do we need to crosscompile?
+        if [ "${SNAPCRAFT_ARCH_TRIPLET}" = "arm-linux-gnueabihf" ]; then
+          arm-linux-gnueabihf-gcc -fPIC stub_calls.c -shared -o ${SNAPCRAFT_PART_INSTALL}/usr/lib/stub_calls.so
+        elif [ "${SNAPCRAFT_ARCH_TRIPLET}" = "aarch64-linux-gnu" ]; then
+          aarch64-linux-gnu-gcc -fPIC stub_calls.c -shared -o ${SNAPCRAFT_PART_INSTALL}/usr/lib/stub_calls.so
+        else
+          gcc -fPIC stub_calls.c -shared -o ${SNAPCRAFT_PART_INSTALL}/usr/lib/stub_calls.so
+        fi
+      else
+        gcc -fPIC stub_calls.c -shared -o ${SNAPCRAFT_PART_INSTALL}/usr/lib/stub_calls.so
+      fi

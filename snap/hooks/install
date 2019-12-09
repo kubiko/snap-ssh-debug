@@ -1,0 +1,21 @@
+#!/bin/bash
+
+DEFAULT_SSH_KEY_USER=root
+# something identifiable
+DEFAULT_SSH_KEY_MACHINE_ALIAS=ondra-uc18
+
+SSH_DIR="${SNAP_COMMON}/.ssh"
+SSH_KEY="${SSH_DIR}/ssh-tunnel-key"
+
+SSH_KEY_USER=$(snapctl get ssh-tunnel.local.ssh-key-user)
+SSH_KEY_MACHINE_ALIAS=$(snapctl get ssh-tunnel.local.ssh-key-machine-alias)
+[ -z "${SSH_KEY_USER}" ] && SSH_KEY_USER=${DEFAULT_SSH_KEY_USER}
+[ -z "${SSH_KEY_MACHINE_ALIAS}" ] && SSH_KEY_MACHINE_ALIAS=${DEFAULT_SSH_KEY_MACHINE_ALIAS}
+
+mkdir -p ${SSH_DIR}
+chmod 0700 ${SSH_DIR}
+
+if [ ! -e ${SSH_KEY} ]; then
+    $SNAP/usr/bin/ssh-keygen -t rsa -C "${SSH_KEY_USER}@${SSH_KEY_MACHINE_ALIAS}" -N "" -f ${SSH_KEY}
+    snapctl set ssh-tunnel.local.ssh-pub-key="$(cat ${SSH_KEY}.pub)"
+fi
