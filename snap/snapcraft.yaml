@@ -28,12 +28,13 @@ apps:
   dropbear:
     command: bin/ssh-server
     daemon: simple
-    environment:
-      LD_PRELOAD: $SNAP/usr/lib/stub_calls.so
     plugs:
       - log-observe
       - network
       - network-bind
+      - system-observe
+      - hardware-observe
+      - network-observe
 
 parts:
   glue:
@@ -49,6 +50,8 @@ parts:
         - openssh-client:arm64
       - to amd64:
         - openssh-client:amd64
+      - to i386:
+        - openssh-client:i386
 
   dropbear:
     plugin: autotools
@@ -58,22 +61,4 @@ parts:
       - zlib1g-dev
     override-pull: |
       snapcraftctl pull
-      git apply ../../../trace.patch
-
-  fix-setgroups-calls:
-    plugin: nil
-    source: fix-setgroups-calls
-    override-build: |
-      mkdir -p ${SNAPCRAFT_PART_INSTALL}/usr/lib
-      if [ -n "$(uname -a | grep x86_64)" ]; then
-        # do we need to crosscompile?
-        if [ "${SNAPCRAFT_ARCH_TRIPLET}" = "arm-linux-gnueabihf" ]; then
-          arm-linux-gnueabihf-gcc -fPIC stub_calls.c -shared -o ${SNAPCRAFT_PART_INSTALL}/usr/lib/stub_calls.so
-        elif [ "${SNAPCRAFT_ARCH_TRIPLET}" = "aarch64-linux-gnu" ]; then
-          aarch64-linux-gnu-gcc -fPIC stub_calls.c -shared -o ${SNAPCRAFT_PART_INSTALL}/usr/lib/stub_calls.so
-        else
-          gcc -fPIC stub_calls.c -shared -o ${SNAPCRAFT_PART_INSTALL}/usr/lib/stub_calls.so
-        fi
-      else
-        gcc -fPIC stub_calls.c -shared -o ${SNAPCRAFT_PART_INSTALL}/usr/lib/stub_calls.so
-      fi
+      git apply ${SNAPCRAFT_PROJECT_DIR}/dropbear.patch

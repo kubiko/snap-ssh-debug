@@ -47,3 +47,31 @@ index 7575f90..c54e3ba 100644
  	/* no matching shell */
  	endusershell();
  	TRACE(("no matching shell"))
+diff --git a/svr-chansession.c b/svr-chansession.c
+index 5a5a8c8..7348359 100644
+--- a/svr-chansession.c
++++ b/svr-chansession.c
+@@ -951,7 +951,7 @@ static void execchild(const void *user_data) {
+ 
+ #if DROPBEAR_SVR_MULTIUSER
+ 	/* We can only change uid/gid as root ... */
+-	if (getuid() == 0) {
++/*	if (getuid() == 0) {
+ 
+ 		if ((setgid(ses.authstate.pw_gid) < 0) ||
+ 			(initgroups(ses.authstate.pw_name, 
+@@ -969,11 +969,11 @@ static void execchild(const void *user_data) {
+ 		 * usernames with the same uid, but differing groups, then the
+ 		 * differing groups won't be set (as with initgroups()). The solution
+ 		 * is for the sysadmin not to give out the UID twice */
+-		if (getuid() != ses.authstate.pw_uid) {
++/*		if (getuid() != ses.authstate.pw_uid) {
+ 			dropbear_exit("Couldn't	change user as non-root");
+ 		}
+-	}
+-#endif
++	} */
++#endif 
+ 
+ 	/* set env vars */
+ 	addnewvar("USER", ses.authstate.pw_name);
