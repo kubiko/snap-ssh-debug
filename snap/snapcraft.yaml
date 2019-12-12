@@ -12,15 +12,13 @@ confinement: strict
 environment:
     PATH:             "$SNAP/usr/sbin:$SNAP/usr/bin:$SNAP/sbin:$SNAP/bin:$PATH"
     LD_LIBRARY_PATH:  "$SNAP/lib/${SNAPCRAFT_ARCH_TRIPLET}:$SNAP_LIBRARY_PATH:$LD_LIBRARY_PATH:$SNAP/lib:$SNAP/usr/lib:$SNAP/usr/lib/${SNAPCRAFT_ARCH_TRIPLET}"
-
-layout:
-  /etc/dropbear:
-    bind: $SNAP_COMMON/etc/dropbear
-
+    DEFAULT_SSH_KEY_MACHINE_ALIAS: my-ubuntu-core-18
 apps:
   ssh-tunnel:
-    command: bin/remote-connect
+    command: bin/ssh-tunnel
     daemon: simple
+    restart-condition: always
+    restart-delay: 5s
     plugs:
       - network
       - network-bind
@@ -28,6 +26,11 @@ apps:
   dropbear:
     command: bin/ssh-server
     daemon: simple
+    restart-delay: 5s
+    environment:
+      DSS_PRIV_FILENAME:   $SNAP_COMMON/etc/dropbear/dropbear_dss_host_key
+      RSA_PRIV_FILENAME:   $SNAP_COMMON/etc/dropbear/dropbear_rsa_host_key
+      ECDSA_PRIV_FILENAME: $SNAP_COMMON/etc/dropbear/dropbear_ecdsa_host_key
     plugs:
       - log-observe
       - network
@@ -38,8 +41,60 @@ apps:
 
 parts:
   glue:
-    source: glue
-    plugin: dump
+    plugin: nil
+    override-pull: |
+      cat > ssh-server  <<EOF
+      #!/bin/bash
+
+      # run server only when enabled in config
+      if [ "true" = "\$(snapctl get ssh-server.enabled)" ]; then
+        PORT=\$(snapctl get  ssh-tunnel.local.port)
+        [ -z "\${PORT}" ] && PORT="22"
+        \${SNAP}/sbin/dropbear -E -F -R -g -a \\
+          -p \${PORT} \\
+          -P \$SNAP_COMMON/dbearPID
+      fi
+      EOF
+      cat > ssh-tunnel <<EOF
+      #!/bin/bash
+
+      SSH_DIR="\${SNAP_COMMON}/.ssh"
+      SSH_KEY="\${SSH_DIR}/ssh-tunnel-key"
+
+      # first get settings (if there are any)
+      REMOTE_TARGET=\$(snapctl get ssh-tunnel.remote.target)
+      REMOTE_FORWARDING_PORT=\$(snapctl get ssh-tunnel.remote.forwarding-port)
+      REMOTE_SSH_PORT=\$(snapctl get ssh-tunnel.remote.ssh-port)  # default 22
+      REMOTE_USER=\$(snapctl get ssh-tunnel.remote.user)
+
+      if [[ -z "\${REMOTE_TARGET}" ]] || [[ -z "\${REMOTE_FORWARDING_PORT}" ]] || [[ -z "\${REMOTE_USER}" ]] ; then
+        # service is not configured, disable it quit
+        echo "ssh tunnel is not configured, disabling service"
+        snapctl stop --disable \${SNAP_INSTANCE_NAME}.ssh-tunnel || true
+        exit 0
+      fi
+
+      [ -z "\${REMOTE_SSH_PORT}" ] && REMOTE_SSH_PORT="22"
+
+      LOCAL_ADDR=\$(snapctl get ssh-tunnel.local.address) # default localhost
+      LOCAL_PORT=\$(snapctl get ssh-tunnel.local.port) # default 22
+
+      [ -z "\${LOCAL_PORT}" ] && LOCAL_PORT="22"
+      [ -z "\${LOCAL_ADDR}" ] && LOCAL_ADDR="localhost"
+
+      ssh -NT \\
+        -o ServerAliveInterval=60 \\
+        -o ExitOnForwardFailure=yes \\
+        -o StrictHostKeyChecking=no \\
+        -o UserKnownHostsFile=\${SSH_DIR}/known_hosts \\
+        -i \${SSH_KEY} \\
+        -R \${REMOTE_FORWARDING_PORT}:\${LOCAL_ADDR}:\${LOCAL_PORT} \\
+        -p \${REMOTE_SSH_PORT} \\
+        \${REMOTE_USER}@\${REMOTE_TARGET}
+      EOF
+    override-build: |
+      install -m755 -D -t ${SNAPCRAFT_PART_INSTALL}/bin ssh-server
+      install -m755 -D -t ${SNAPCRAFT_PART_INSTALL}/bin ssh-tunnel
 
   openssh-client:
     plugin: nil
@@ -62,3 +117,6 @@ parts:
     override-pull: |
       snapcraftctl pull
       git apply ${SNAPCRAFT_PROJECT_DIR}/dropbear.patch
+    configflags:
+      - --disable-lastlog
+      - --disable-shadow

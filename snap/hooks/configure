@@ -40,4 +40,3 @@ if [ -n "$(snapctl get ssh-server.authorized-keys)" ]; then
     snapctl get ssh-server.authorized-keys > ${SSH_DIR}/authorized_keys
     chmod 0600 ${SSH_DIR}/authorized_keys
 fi
-
