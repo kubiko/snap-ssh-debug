@@ -64,7 +64,7 @@ parts:
         PORT=\$(snapctl get  ssh-tunnel.local.port)
         [ -z "\${PORT}" ] && PORT="22"
         \${SNAP}/sbin/dropbear -E -F -R -g -a \\
-          -p \${PORT} \\
+          -p localhost:\${PORT} \\
           -P \$SNAP_COMMON/dbearPID
       fi
       EOF
