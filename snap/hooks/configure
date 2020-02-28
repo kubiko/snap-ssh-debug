@@ -30,6 +30,8 @@ fi
 if [ "true" == "$(snapctl get ssh-server.enabled)" ]; then
     snapctl start --enable ${SNAP_INSTANCE_NAME}.dropbear
     snapctl restart ${SNAP_INSTANCE_NAME}.dropbear
+else
+    snapctl stop --disable ${SNAP_INSTANCE_NAME}.dropbear
 fi
 
 mkdir -p ${SSH_DIR}
