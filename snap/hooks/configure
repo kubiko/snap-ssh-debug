@@ -7,7 +7,7 @@ if [[ -n "${SSH_KEY_USER}" ]] || [[ -n "${SSH_KEY_MACHINE_ALIAS}" ]]; then
   # do we already have corect key generated?
   if [ -z "$(grep '${SSH_KEY_USER}@${SSH_MACHINE_ALIAS}' ${SSH_KEY}.pub)" ]; then
     # update key alias
-    sed -i 's/ *@*/ '"${SSH_KEY_USER}"'@'"${SSH_KEY_MACHINE_ALIAS}"'/g' ${SSH_KEY}.pub
+    sed -i 's/ssh-rsa \(.*\) .*@.*/ssh-rsa \1 '"${SSH_KEY_USER}"'@'"${SSH_KEY_MACHINE_ALIAS}"'/g' ${SSH_KEY}.pub
   fi
 fi
 
