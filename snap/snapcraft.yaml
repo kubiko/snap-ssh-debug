@@ -1,6 +1,6 @@
 name: ondra-snap-ssh-debug
 base: core18
-version: '0.1'
+version: '0.2'
 summary: ssh tunnel with built in ssh server
 description: |
   ssh tunnel with built in ssh server.
