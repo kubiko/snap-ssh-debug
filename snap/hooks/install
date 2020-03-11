@@ -8,6 +8,8 @@ SSH_KEY="${SSH_DIR}/ssh-tunnel-key"
 SSH_KEY_USER=$(snapctl get ssh-tunnel.local.ssh-key-user)
 SSH_KEY_MACHINE_ALIAS=$(snapctl get ssh-tunnel.local.ssh-key-machine-alias)
 [ -z "${SSH_KEY_USER}" ] && SSH_KEY_USER=${DEFAULT_SSH_KEY_USER}
+# try to use hostname
+[ -z "${SSH_KEY_MACHINE_ALIAS}" ] && [ -f /etc/hostname ] && SSH_KEY_MACHINE_ALIAS="$(cat /etc/hostname)"
 [ -z "${SSH_KEY_MACHINE_ALIAS}" ] && SSH_KEY_MACHINE_ALIAS=${DEFAULT_SSH_KEY_MACHINE_ALIAS}
 
 mkdir -p ${SSH_DIR}
