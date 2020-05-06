@@ -2,6 +2,13 @@ name: ondra-snap-ssh-debug
 base: core18
 version: '0.2'
 summary: ssh tunnel with built in ssh server
+
+architectures:
+    - build-on: armhf
+    - build-on: arm64
+    - build-on: amd64
+    - build-on: i386
+
 description: |
   ssh tunnel with built in ssh server.
   It can be run stand alone as ssh-tunnel and bind on local ssh server. Or it can be used as boilerplate to be added into own snap to enable remote
