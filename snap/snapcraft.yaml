@@ -1,13 +1,12 @@
 name: ondra-snap-ssh-debug
-base: core18
-version: '0.2'
+base: core20
+version: '0.3'
 summary: ssh tunnel with built in ssh server
 
 architectures:
     - build-on: armhf
     - build-on: arm64
     - build-on: amd64
-    - build-on: i386
 
 description: |
   ssh tunnel with built in ssh server.
@@ -32,7 +31,8 @@ confinement: strict
 environment:
     PATH:             "$SNAP/usr/sbin:$SNAP/usr/bin:$SNAP/sbin:$SNAP/bin:$PATH"
     LD_LIBRARY_PATH:  "$SNAP/lib/${SNAPCRAFT_ARCH_TRIPLET}:$SNAP_LIBRARY_PATH:$LD_LIBRARY_PATH:$SNAP/lib:$SNAP/usr/lib:$SNAP/usr/lib/${SNAPCRAFT_ARCH_TRIPLET}"
-    DEFAULT_SSH_KEY_MACHINE_ALIAS: my-ubuntu-core-18
+    DEFAULT_SSH_KEY_MACHINE_ALIAS: my-ubuntu-core
+
 apps:
   ssh-tunnel:
     command: bin/ssh-tunnel
@@ -42,25 +42,28 @@ apps:
     plugs:
       - network
       - network-bind
+      - ssh-keys
 
   dropbear:
     command: bin/ssh-server
     daemon: simple
     restart-delay: 5s
     plugs:
+      - home
       - log-observe
       - network
       - network-bind
       - system-observe
       - hardware-observe
       - network-observe
+      - ssh-keys
 
 parts:
   glue:
     plugin: nil
     override-pull: |
       cat > ssh-server  <<EOF
-      #!/bin/bash
+      #!/bin/sh
 
       # run server only when enabled in config
       if [ "true" = "\$(snapctl get ssh-server.enabled)" ]; then
@@ -119,14 +122,7 @@ parts:
   openssh-client:
     plugin: nil
     stage-packages:
-      - to armhf:
-        - openssh-client:armhf
-      - to arm64:
-        - openssh-client:arm64
-      - to amd64:
-        - openssh-client:amd64
-      - to i386:
-        - openssh-client:i386
+        - openssh-client
 
   dropbear:
     plugin: autotools
@@ -136,7 +132,10 @@ parts:
       - zlib1g-dev
     override-pull: |
       snapcraftctl pull
-      git apply ${SNAPCRAFT_PROJECT_DIR}/dropbear.patch
-    configflags:
+      git apply ${SNAPCRAFT_PROJECT_DIR}/dropbear-000*-*.patch
+    autotools-configure-parameters:
       - --disable-lastlog
       - --disable-shadow
+      - --prefix=/usr
+      - --bindir=/usr/bin
+      - --disable-syslog
