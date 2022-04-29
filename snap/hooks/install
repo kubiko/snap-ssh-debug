@@ -2,7 +2,7 @@
 
 DEFAULT_SSH_KEY_USER=root
 
-SSH_DIR="${SNAP_COMMON}/.ssh"
+SSH_DIR="${SNAP_USER_COMMON}/.ssh"
 SSH_KEY="${SSH_DIR}/ssh-tunnel-key"
 
 SSH_KEY_USER=$(snapctl get ssh-tunnel.local.ssh-key-user)
