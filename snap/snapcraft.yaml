@@ -47,10 +47,6 @@ apps:
     command: bin/ssh-server
     daemon: simple
     restart-delay: 5s
-    environment:
-      DSS_PRIV_FILENAME:   $SNAP_COMMON/etc/dropbear/dropbear_dss_host_key
-      RSA_PRIV_FILENAME:   $SNAP_COMMON/etc/dropbear/dropbear_rsa_host_key
-      ECDSA_PRIV_FILENAME: $SNAP_COMMON/etc/dropbear/dropbear_ecdsa_host_key
     plugs:
       - log-observe
       - network
@@ -70,9 +66,13 @@ parts:
       if [ "true" = "\$(snapctl get ssh-server.enabled)" ]; then
         PORT=\$(snapctl get  ssh-tunnel.local.port)
         [ -z "\${PORT}" ] && PORT="22"
-        \${SNAP}/sbin/dropbear -E -F -R -g -a \\
-          -p localhost:\${PORT} \\
-          -P \$SNAP_COMMON/dbearPID
+        \${SNAP}/usr/sbin/dropbear -e -F -R -g -a \\
+          -p \${PORT} \\
+          -P \${SNAP_COMMON}/dbearPID \\
+          -r \${SNAP_COMMON}/etc/dropbear/dropbear_ed25519_host_key \
+          -r \${SNAP_COMMON}/etc/dropbear/dropbear_rsa_host_key \
+          -r \${SNAP_COMMON}/etc/dropbear/dropbear_dss_host_key \
+          -r \${SNAP_COMMON}/etc/dropbear/dropbear_ecdsa_host_key
       fi
       EOF
       cat > ssh-tunnel <<EOF

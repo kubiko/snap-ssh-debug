@@ -15,6 +15,11 @@ SSH_KEY_MACHINE_ALIAS=$(snapctl get ssh-tunnel.local.ssh-key-machine-alias)
 mkdir -p ${SSH_DIR}
 mkdir -p ${SNAP_COMMON}/etc/dropbear
 chmod 0700 ${SSH_DIR}
+# generate dropbear host keys
+[ ! -f ${SNAP_COMMON}/etc/dropbear/dropbear_rsa_host_key ] && dropbearkey -t rsa -f ${SNAP_COMMON}/etc/dropbear/dropbear_rsa_host_key
+[ ! -f ${SNAP_COMMON}/etc/dropbear/dropbear_dss_host_key ] && dropbearkey -t dss -f ${SNAP_COMMON}/etc/dropbear/dropbear_dss_host_key
+[ ! -f ${SNAP_COMMON}/etc/dropbear/dropbear_ecdsa_host_key ] && dropbearkey -t ecdsa -f ${SNAP_COMMON}/etc/dropbear/dropbear_ecdsa_host_key
+[ ! -f ${SNAP_COMMON}/etc/dropbear/dropbear_ed25519_host_key ] && dropbearkey -t ed25519 -f ${SNAP_COMMON}/etc/dropbear/dropbear_ed25519_host_key
 
 if [ ! -e ${SSH_KEY} ]; then
     ${SNAP}/usr/bin/ssh-keygen -t rsa -C "${SSH_KEY_USER}@${SSH_KEY_MACHINE_ALIAS}" -N "" -f ${SSH_KEY}
