@@ -1,0 +1,39 @@
+From 3d5927122d918651d8e9d087262ade1dc051420f Mon Sep 17 00:00:00 2001
+From: Ondrej Kubik <ondrej.kubik@canonical.com>
+Date: Fri, 29 Apr 2022 20:08:55 +0100
+Subject: [PATCH 1/5] svr-chansession.c: avoid calling getuid()
+
+Signed-off-by: Ondrej Kubik <ondrej.kubik@canonical.com>
+---
+ svr-chansession.c | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
+
+diff --git a/svr-chansession.c b/svr-chansession.c
+index 9ae2e60..8bf496f 100644
+--- a/svr-chansession.c
++++ b/svr-chansession.c
+@@ -983,7 +983,7 @@ static void execchild(const void *user_data) {
+ 
+ #if DROPBEAR_SVR_MULTIUSER
+ 	/* We can only change uid/gid as root ... */
+-	if (getuid() == 0) {
++/*	if (getuid() == 0) {
+ 
+ 		if ((setgid(ses.authstate.pw_gid) < 0) ||
+ 			(initgroups(ses.authstate.pw_name, 
+@@ -1001,10 +1001,10 @@ static void execchild(const void *user_data) {
+ 		 * usernames with the same uid, but differing groups, then the
+ 		 * differing groups won't be set (as with initgroups()). The solution
+ 		 * is for the sysadmin not to give out the UID twice */
+-		if (getuid() != ses.authstate.pw_uid) {
++/*		if (getuid() != ses.authstate.pw_uid) {
+ 			dropbear_exit("Couldn't	change user as non-root");
+ 		}
+-	}
++	} */
+ #endif
+ 
+ 	/* set env vars */
+-- 
+2.25.1
+

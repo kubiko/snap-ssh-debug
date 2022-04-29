@@ -131,7 +131,7 @@ parts:
   dropbear:
     plugin: autotools
     source: https://github.com/mkj/dropbear.git
-    source-branch: DROPBEAR_2019.78
+    source-branch: DROPBEAR_2022.82
     build-packages:
       - zlib1g-dev
     override-pull: |

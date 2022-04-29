@@ -1,0 +1,27 @@
+From 8d697aeb3be211bb6731f738c045d2622a1b1099 Mon Sep 17 00:00:00 2001
+From: Ondrej Kubik <ondrej.kubik@canonical.com>
+Date: Fri, 29 Apr 2022 20:14:57 +0100
+Subject: [PATCH 4/5] common-session.c: set SNAP_USER_COMMON as user session
+ home
+
+Signed-off-by: Ondrej Kubik <ondrej.kubik@canonical.com>
+---
+ common-session.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/common-session.c b/common-session.c
+index 5fb33a6..7a27a28 100644
+--- a/common-session.c
++++ b/common-session.c
+@@ -634,7 +634,7 @@ void fill_passwd(const char* username) {
+ 	ses.authstate.pw_uid = pw->pw_uid;
+ 	ses.authstate.pw_gid = pw->pw_gid;
+ 	ses.authstate.pw_name = m_strdup(pw->pw_name);
+-	ses.authstate.pw_dir = m_strdup(pw->pw_dir);
++	ses.authstate.pw_dir = getenv("SNAP_USER_COMMON");// m_strdup(pw->pw_dir);
+ 	ses.authstate.pw_shell = m_strdup(pw->pw_shell);
+ 	{
+ 		char *passwd_crypt = pw->pw_passwd;
+-- 
+2.25.1
+

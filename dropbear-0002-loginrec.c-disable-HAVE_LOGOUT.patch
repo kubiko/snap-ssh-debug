@@ -1,0 +1,25 @@
+From 7c39a57a91d348914610e9eaa2862c01ff2535d3 Mon Sep 17 00:00:00 2001
+From: Ondrej Kubik <ondrej.kubik@canonical.com>
+Date: Fri, 29 Apr 2022 20:12:49 +0100
+Subject: [PATCH 2/5] loginrec.c: disable HAVE_LOGOUT
+
+Signed-off-by: Ondrej Kubik <ondrej.kubik@canonical.com>
+---
+ loginrec.c | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/loginrec.c b/loginrec.c
+index af10d95..39b6875 100644
+--- a/loginrec.c
++++ b/loginrec.c
+@@ -1217,6 +1217,7 @@ syslogin_perform_login(struct logininfo *li)
+ static int
+ syslogin_perform_logout(struct logininfo *li)
+ {
++#undef HAVE_LOGOUT
+ # ifdef HAVE_LOGOUT
+ 	char line[8];
+ 
+-- 
+2.25.1
+
