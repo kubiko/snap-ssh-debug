@@ -1,6 +1,6 @@
 name: ondra-snap-ssh-debug
-base: core20
-version: '0.3'
+base: core22
+version: '0.4'
 summary: ssh tunnel with built in ssh server
 
 architectures:
@@ -30,7 +30,7 @@ confinement: strict
 
 environment:
     PATH:             "$SNAP/usr/sbin:$SNAP/usr/bin:$SNAP/sbin:$SNAP/bin:$PATH"
-    LD_LIBRARY_PATH:  "$SNAP/lib/${SNAPCRAFT_ARCH_TRIPLET}:$SNAP_LIBRARY_PATH:$LD_LIBRARY_PATH:$SNAP/lib:$SNAP/usr/lib:$SNAP/usr/lib/${SNAPCRAFT_ARCH_TRIPLET}"
+    LD_LIBRARY_PATH:  "$SNAP/lib/${CRAFT_ARCH_TRIPLET_BUILD_FOR}:$SNAP_LIBRARY_PATH:$LD_LIBRARY_PATH:$SNAP/lib:$SNAP/usr/lib:$SNAP/usr/lib/${CRAFT_ARCH_TRIPLET_BUILD_FOR}"
     DEFAULT_SSH_KEY_MACHINE_ALIAS: my-ubuntu-core
 
 apps:
@@ -49,13 +49,13 @@ apps:
     daemon: simple
     restart-delay: 5s
     plugs:
+      - hardware-observe
       - home
       - log-observe
       - network
       - network-bind
-      - system-observe
-      - hardware-observe
       - network-observe
+      - system-observe
       - ssh-keys
 
 parts:
@@ -116,8 +116,8 @@ parts:
         \${REMOTE_USER}@\${REMOTE_TARGET}
       EOF
     override-build: |
-      install -m755 -D -t ${SNAPCRAFT_PART_INSTALL}/bin ssh-server
-      install -m755 -D -t ${SNAPCRAFT_PART_INSTALL}/bin ssh-tunnel
+      install -m755 -D -t ${CRAFT_PART_INSTALL}/bin ssh-server
+      install -m755 -D -t ${CRAFT_PART_INSTALL}/bin ssh-tunnel
 
   openssh-client:
     plugin: nil
@@ -128,14 +128,15 @@ parts:
     plugin: autotools
     source: https://github.com/mkj/dropbear.git
     source-branch: DROPBEAR_2022.82
-    build-packages:
-      - zlib1g-dev
     override-pull: |
-      snapcraftctl pull
-      git apply ${SNAPCRAFT_PROJECT_DIR}/dropbear-000*-*.patch
+      craftctl default
+      git apply ${CRAFT_PROJECT_DIR}/dropbear-000*-*.patch
     autotools-configure-parameters:
       - --disable-lastlog
       - --disable-shadow
       - --prefix=/usr
       - --bindir=/usr/bin
       - --disable-syslog
+
+build-packages:
+  - zlib1g-dev
