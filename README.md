@@ -24,3 +24,8 @@ $ snap set ondra-snap-ssh-debug ssh-tunnel.local.port=2040
 $ snap set ondra-snap-ssh-debug ssh-server='{ "enabled": "true", "authorized-keys" : "ssh-rsa AAAA&lt;MY SSH public key&gt;== ondrej.kubik"}'
 ```
 
+Default user for built in ssh server is 'root', use like:
+```
+$ ssh -p 2040 root@<ip address>
+$ scp -P <local file> 2040 root@<ip address>:
+```
