@@ -1,6 +1,6 @@
 name: ondra-snap-ssh-debug
 base: core22
-version: '0.4'
+version: '0.5'
 summary: ssh tunnel with built in ssh server
 
 architectures:
@@ -32,6 +32,7 @@ environment:
     PATH:             "$SNAP/usr/sbin:$SNAP/usr/bin:$SNAP/sbin:$SNAP/bin:$PATH"
     LD_LIBRARY_PATH:  "$SNAP/lib/${CRAFT_ARCH_TRIPLET_BUILD_FOR}:$SNAP_LIBRARY_PATH:$LD_LIBRARY_PATH:$SNAP/lib:$SNAP/usr/lib:$SNAP/usr/lib/${CRAFT_ARCH_TRIPLET_BUILD_FOR}"
     DEFAULT_SSH_KEY_MACHINE_ALIAS: my-ubuntu-core
+    SNAP_SFTP_SERVER: $SNAP/usr/lib/openssh/sftp-server
 
 apps:
   ssh-tunnel:
@@ -123,6 +124,7 @@ parts:
     plugin: nil
     stage-packages:
         - openssh-client
+        - openssh-sftp-server
 
   dropbear:
     plugin: autotools

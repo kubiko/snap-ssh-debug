@@ -1,0 +1,31 @@
+From b1a9d0865a5e93cdfb5eef5d766297de9f67ad24 Mon Sep 17 00:00:00 2001
+From: Ondrej Kubik <ondrej.kubik@canonical.com>
+Date: Thu, 19 Oct 2023 17:11:36 +0100
+Subject: [PATCH] svr-chansession.c: allow sftp-server configuration
+
+Signed-off-by: Ondrej Kubik <ondrej.kubik@canonical.com>
+---
+ svr-chansession.c | 7 ++++++-
+ 1 file changed, 6 insertions(+), 1 deletion(-)
+
+diff --git a/svr-chansession.c b/svr-chansession.c
+index 9ae2e60..3da2b4e 100644
+--- a/svr-chansession.c
++++ b/svr-chansession.c
+@@ -685,7 +685,12 @@ static int sessioncommand(struct Channel *channel, struct ChanSess *chansess,
+ 		if (issubsys) {
+ #if DROPBEAR_SFTPSERVER
+ 			if ((cmdlen == 4) && strncmp(chansess->cmd, "sftp", 4) == 0) {
+-				char *expand_path = expand_homedir_path(SFTPSERVER_PATH);
++				const char *sftp_server = getenv("SNAP_SFTP_SERVER");
++				char *expand_path = NULL;
++				if (sftp_server != NULL)
++					expand_path = expand_homedir_path(sftp_server);
++				else
++					expand_path = expand_homedir_path(SFTPSERVER_PATH);
+ 				m_free(chansess->cmd);
+ 				chansess->cmd = m_strdup(expand_path);
+ 				m_free(expand_path);
+-- 
+2.34.1
+
